@@ -271,6 +271,61 @@ view_stats ENDP
 
 
 
+upgrade_stats PROC
+    LEA DX, upgrade_header
+    CALL print_string
+    
+    CALL get_choice
+    
+    CMP AL, '1'
+    JE upgrade_stamina
+    CMP AL, '2'
+    JE upgrade_strength
+    CMP AL, '3'
+    JE upgrade_health
+    JMP upgrade_stats_end
+
+upgrade_stamina:
+    CMP player_coins, 10
+    JL insufficient_coins
+    SUB player_coins, 10
+    INC player_stamina
+    JMP upgrade_success_msg
+
+upgrade_strength:
+    CMP player_coins, 15
+    JL insufficient_coins
+    SUB player_coins, 15
+    INC player_strength
+    JMP upgrade_success_msg
+
+upgrade_health:
+    CMP player_coins, 10
+    JL insufficient_coins
+    SUB player_coins, 10
+    INC player_health
+    JMP upgrade_success_msg
+
+insufficient_coins:
+    LEA DX, insufficient
+    CALL print_string
+    CALL pause
+    RET
+
+upgrade_success_msg:
+    LEA DX, upgrade_success
+    CALL print_string
+    LEA DX, remaining_coins
+    CALL print_string
+    MOV AX, player_coins
+    CALL print_number
+    CALL pause
+
+upgrade_stats_end:
+    RET
+upgrade_stats ENDP
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; HELPER FUNCTIONS
 
