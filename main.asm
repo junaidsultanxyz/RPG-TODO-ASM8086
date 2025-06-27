@@ -73,8 +73,46 @@
 MAIN PROC
     MOV AX, @DATA
     MOV DS, AX
-    
+
 main_loop:
+    CALL show_menu
+    CALL get_choice
+    
+    CMP AL, '1'
+    JE add_task_handler
+    CMP AL, '2'
+    JE show_tasks_handler
+    CMP AL, '3'
+    JE complete_task_handler
+    CMP AL, '4'
+    JE view_stats_handler
+    CMP AL, '5'
+    JE upgrade_stats_handler
+    CMP AL, '6'
+    JE exit_program
+    
+    JMP main_loop
+
+add_task_handler:
+    CALL add_task
+    JMP main_loop
+
+show_tasks_handler:
+    CALL show_tasks
+    JMP main_loop
+
+complete_task_handler:
+    CALL complete_task
+    JMP main_loop
+
+view_stats_handler:
+    CALL view_stats
+    JMP main_loop
+
+upgrade_stats_handler:
+    CALL upgrade_stats
+    JMP main_loop
+
 
 exit_program:
     MOV AH, 4Ch
