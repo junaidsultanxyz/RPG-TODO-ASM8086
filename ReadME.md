@@ -4,8 +4,8 @@ A text-based reward-based To-Do List game built in 8086 16-bit Assembly.
 Complete real-life tasks to earn XP and coins, then use those rewards to upgrade your character’s **Stamina**, **Strength**, and **Health**.
 
 ## 📌 Team
-[Junaid Sultan](https://github.com/junaidsultanxyz)
-[Member 2]()
+1. [Junaid Sultan](https://github.com/junaidsultanxyz)
+2. [Member 2]()
 
 ---
 
