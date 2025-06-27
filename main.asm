@@ -185,6 +185,49 @@ add_task ENDP
 
 
 
+complete_task PROC
+    LEA DX, complete_prompt
+    CALL print_string
+    
+    CALL get_number
+    MOV temp_number, AX
+    
+    ; validate task number (1-based)
+    CMP AX, 1
+    JL invalid_task_num
+    
+    ; convert to 0-based and check if it exists
+    DEC AX
+    CMP AL, task_count
+    JGE invalid_task_num
+    
+    ; check if task is pending
+    MOV SI, AX
+    ADD SI, OFFSET task_status
+    CMP BYTE PTR [SI], 1
+    JNE invalid_task_num
+    
+    ; mark as completed
+    MOV BYTE PTR [SI], 2
+    
+    
+    ADD player_xp, 10
+    ADD player_coins, 5
+    
+    LEA DX, task_completed
+    CALL print_string
+    CALL pause
+    RET
+
+invalid_task_num:
+    LEA DX, invalid_task
+    CALL print_string
+    CALL pause
+    RET
+complete_task ENDP
+
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; HELPER FUNCTIONS
 
