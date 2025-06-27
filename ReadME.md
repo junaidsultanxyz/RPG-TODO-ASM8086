@@ -15,9 +15,9 @@ Complete real-life tasks to earn XP and coins, then use those rewards to upgrade
 
 ### Character System
 - [x] Character has 3 upgradable stats:
-  - Stamina (starts at 10)
-  - Strength (starts at 5)
-  - Health (starts at 10)
+  - Stamina (starts at 40)
+  - Strength (starts at 1)
+  - Health (starts at 50)
 
 ### Reward System
 - [x] Completing a task gives:
