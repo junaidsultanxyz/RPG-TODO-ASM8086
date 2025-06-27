@@ -227,6 +227,49 @@ invalid_task_num:
 complete_task ENDP
 
 
+;  view player stats
+view_stats PROC
+    LEA DX, stats_header
+    CALL print_string
+    
+    ; display XP
+    LEA DX, xp_label
+    CALL print_string
+    MOV AX, player_xp
+    CALL print_number
+    
+    ; display coins
+    LEA DX, coins_label
+    CALL print_string
+    MOV AX, player_coins
+    CALL print_number
+    
+    ; display stamina
+    LEA DX, stamina_label
+    CALL print_string
+    MOV AL, player_stamina
+    MOV AH, 0
+    CALL print_number
+    
+    ; display strength
+    LEA DX, strength_label
+    CALL print_string
+    MOV AL, player_strength
+    MOV AH, 0
+    CALL print_number
+    
+    ; display health
+    LEA DX, health_label
+    CALL print_string
+    MOV AL, player_health
+    MOV AH, 0
+    CALL print_number
+    
+    CALL pause
+    RET
+view_stats ENDP
+
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; HELPER FUNCTIONS
