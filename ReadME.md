@@ -3,6 +3,10 @@
 A text-based reward-based To-Do List game built in 8086 16-bit Assembly.  
 Complete real-life tasks to earn XP and coins, then use those rewards to upgrade your character’s **Stamina**, **Strength**, and **Health**.
 
+## 📌 Team
+[Junaid Sultan](https://github.com/junaidsultanxyz)
+[Member 2]()
+
 ---
 
 ## Functional Requirements
@@ -114,10 +118,4 @@ Remaining coins: 10
 - [EMU8086 IDE](https://emu8086-microprocessor-emulator.en.softonic.com/)
 - [VS Code + MASM/TASM Extension] (https://code.visualstudio.com/download)
 
-After installing VS Code, Quick Open (Ctrl + P) and paste (ext install xsro.masm-tasm) to install MASM/TASM extension
-
----
-
-## 📌 Author
-Made by **Junaid Sultan**  
-A passion project to combine productivity with gamification using low-level programming.
+After installing VS Code, Quick Open (Ctrl + P) and paste (ext install xsro.masm-tasm) to install MASM/TASM extension. Right click the .asm file and click on "Run ASM Code"
