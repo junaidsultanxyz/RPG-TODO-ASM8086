@@ -69,6 +69,8 @@
     input_buffer    DB 25 DUP(0)
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; MAIN
+
 .CODE
 MAIN PROC
     MOV AX, @DATA
@@ -119,3 +121,138 @@ exit_program:
     INT 21h
 
 MAIN ENDP
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; FR FUNCTIONS
+
+; add a new task
+add_task PROC
+    ; check if we have space for more tasks
+    CMP task_count, max_tasks
+    JGE task_limit_reached
+    
+    LEA DX, task_prompt
+    CALL print_string
+    
+    ; get task input
+    LEA DX, input_buffer
+    MOV AH, 0Ah
+    MOV input_buffer[0], task_length - 1
+    INT 21h
+    
+    ; find empty slot and copy task
+    MOV AL, task_count
+    MOV AH, 0
+    MOV BL, task_length
+    MUL BL                      ; aX = task_count * task_length
+    
+    MOV SI, AX
+    ADD SI, OFFSET tasks        ; sI points to empty task slot
+    
+    ; copy task from input buffer
+    MOV CL, input_buffer[1]
+    MOV CH, 0
+    LEA DI, input_buffer[2]
+    
+copy_task:
+    MOV AL, [DI]
+    MOV [SI], AL
+    INC SI
+    INC DI
+    LOOP copy_task
+    
+    MOV BYTE PTR [SI], 0        ; null terminate
+
+    ; mark task as pending
+    MOV AL, task_count
+    MOV AH, 0
+    MOV SI, AX
+    ADD SI, OFFSET task_status
+    MOV BYTE PTR [SI], 1        ; 1 = pending
+    
+    INC task_count
+    
+    LEA DX, task_added
+    CALL print_string
+    CALL pause
+    RET
+
+task_limit_reached:
+    LEA DX, newline
+    CALL print_string
+    RET
+add_task ENDP
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; HELPER FUNCTIONS
+
+show_menu PROC
+    LEA DX, menu_title
+    CALL print_string
+    RET
+show_menu ENDP
+
+; get user input
+get_choice PROC
+    MOV AH, 1
+    INT 21h
+    MOV choice, AL
+    RET
+get_choice ENDP
+
+print_string PROC
+    MOV AH, 9
+    INT 21h
+    RET
+print_string ENDP
+
+print_number PROC
+    ; convert number in AX to string and print
+    PUSH AX
+    PUSH BX
+    PUSH CX
+    PUSH DX
+    
+    MOV CX, 0
+    MOV BX, 10
+    
+convert_loop:
+    MOV DX, 0
+    DIV BX
+    PUSH DX
+    INC CX
+    CMP AX, 0
+    JNE convert_loop
+    
+print_digits:
+    POP DX
+    ADD DL, '0'
+    MOV AH, 2
+    INT 21h
+    LOOP print_digits
+    
+    POP DX
+    POP CX
+    POP BX
+    POP AX
+    RET
+print_number ENDP
+
+get_number PROC
+    ; single digit input
+    MOV AH, 1
+    INT 21h
+    SUB AL, '0'
+    MOV AH, 0
+    RET
+get_number ENDP
+
+pause PROC
+    LEA DX, press_key
+    CALL print_string
+    MOV AH, 1
+    INT 21h
+    RET
+pause ENDP
