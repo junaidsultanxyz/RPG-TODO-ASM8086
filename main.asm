@@ -184,6 +184,91 @@ task_limit_reached:
 add_task ENDP
 
 
+show_tasks PROC
+    ; show pending tasks
+    LEA DX, pending_header
+    CALL print_string
+    
+    MOV CX, 0                   ; task counter
+    MOV BX, 0                   ; task index
+    
+show_pending_loop:
+    CMP BL, task_count
+    JGE show_completed_start
+    
+    MOV SI, BX
+    ADD SI, OFFSET task_status
+    CMP BYTE PTR [SI], 1
+    JNE next_pending
+    
+    ; display task number
+    INC CX
+    MOV AX, CX
+    CALL print_number
+    LEA DX, dot
+    MOV AH, 9
+    INT 21h
+    
+
+    MOV AX, BX
+    MOV DL, task_length
+    MUL DL
+    MOV SI, AX
+    ADD SI, OFFSET tasks
+    MOV DX, SI
+    CALL print_string
+    LEA DX, newline
+    CALL print_string
+
+next_pending:
+    INC BX
+    JMP show_pending_loop
+
+show_completed_start:
+    LEA DX, completed_header
+    CALL print_string
+    
+    MOV CX, 0                   ; reset counter
+    MOV BX, 0                   ; reset index
+    
+show_completed_loop:
+    CMP BL, task_count
+    JGE show_tasks_end
+    
+    ; Check if task is completed
+    MOV SI, BX
+    ADD SI, OFFSET task_status
+    CMP BYTE PTR [SI], 2
+    JNE next_completed
+    
+    ; display task number
+    INC CX
+    MOV AX, CX
+    CALL print_number
+    LEA DX, dot
+    MOV AH, 9
+    INT 21h
+    
+    MOV AX, BX
+    MOV DL, task_length
+    MUL DL
+    MOV SI, AX
+    ADD SI, OFFSET tasks
+    MOV DX, SI
+    CALL print_string
+    LEA DX, newline
+    CALL print_string
+
+next_completed:
+    INC BX
+    JMP show_completed_loop
+
+show_tasks_end:
+    CALL pause
+    RET
+show_tasks ENDP
+
+
 
 complete_task PROC
     LEA DX, complete_prompt
