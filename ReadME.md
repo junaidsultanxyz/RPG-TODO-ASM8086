@@ -5,7 +5,7 @@ Complete real-life tasks to earn XP and coins, then use those rewards to upgrade
 
 ## 📌 Team
 1. [Junaid Sultan](https://github.com/junaidsultanxyz)
-2. [Member 2]()
+2. [Messam Shahzad](https://github.com/Misu06)
 
 ---
 
@@ -116,6 +116,6 @@ Remaining coins: 10
 
 ## Recommended Tools
 - [EMU8086 IDE](https://emu8086-microprocessor-emulator.en.softonic.com/)
-- [VS Code + MASM/TASM Extension] (https://code.visualstudio.com/download)
+- [VS Code + MASM/TASM Extension](https://code.visualstudio.com/download)
 
 After installing VS Code, Quick Open (Ctrl + P) and paste (ext install xsro.masm-tasm) to install MASM/TASM extension. Right click the .asm file and click on "Run ASM Code"
