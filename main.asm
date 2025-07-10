@@ -2,17 +2,18 @@
 .STACK 100h
 
 .DATA
+    ; Menu strings
     menu_title      DB 13,10,'==========================',13,10
-                    DB 'TO-DO RPG SYSTEM',13,10
-                    DB '1. Add Task',13,10
-                    DB '2. Show Tasks',13,10
-                    DB '3. Complete Task',13,10
-                    DB '4. View Stats',13,10
-                    DB '5. Upgrade Stats',13,10
-                    DB '6. Exit',13,10,13,10
-                    DB 'Enter choice: $'
+                   DB 'TO-DO RPG SYSTEM',13,10
+                   DB '1. Add Task',13,10
+                   DB '2. Show Tasks',13,10
+                   DB '3. Complete Task',13,10
+                   DB '4. View Stats',13,10
+                   DB '5. Upgrade Stats',13,10
+                   DB '6. Exit',13,10,13,10
+                   DB 'Enter choice: $'
     
-    ; task management
+    ; Task management
     task_prompt     DB 13,10,'Enter new task (max 20 chars): $'
     task_added      DB 13,10,'Task added successfully.$'
     pending_header  DB 13,10,'--- Pending Tasks ---',13,10,'$'
@@ -23,7 +24,7 @@
                    DB '+10 XP and +5 coins awarded!$'
     invalid_task    DB 13,10,'Invalid task number!$'
     
-    ; stats display
+    ; Stats display
     stats_header    DB 13,10,'--- Player Stats ---',13,10,'$'
     xp_label        DB 'XP: $'
     coins_label     DB 13,10,'Coins: $'
@@ -31,51 +32,48 @@
     strength_label  DB 13,10,'Strength: $'
     health_label    DB 13,10,'Health: $'
     
-    ; upgrade menu
+    ; Upgrade menu
     upgrade_header  DB 13,10,'Which stat to upgrade?',13,10,13,10
-                    DB '1. Stamina (10 coins)',13,10
-                    DB '2. Strength (15 coins)',13,10
-                    DB '3. Health (10 coins)',13,10,13,10
-                    DB 'Enter choice: $'
+                   DB '1. Stamina (10 coins)',13,10
+                   DB '2. Strength (15 coins)',13,10
+                   DB '3. Health (10 coins)',13,10,13,10
+                   DB 'Enter choice: $'
     upgrade_success DB 13,10,'Upgrade successful!$'
     insufficient    DB 13,10,'Insufficient coins!$'
     remaining_coins DB 13,10,'Remaining coins: $'
     
-    ; general messages
+    ; General messages
     newline         DB 13,10,'$'
     press_key       DB 13,10,'Press any key to continue...$'
     goodbye         DB 13,10,'Thanks for playing! Goodbye!$'
     dot             DB '. ','$'
     
-    ; game data
+    ; Game data
     max_tasks       EQU 10
     task_length     EQU 21          ; 20 chars + null terminator
     
-    ; task storage (10 tasks * 21 bytes each)
+    ; Task storage (10 tasks * 21 bytes each)
     tasks           DB max_tasks * task_length DUP(0)
-    task_status     DB max_tasks DUP(0)        ; 0 = empty, 1 = pending, 2 = completed
+    task_status     DB max_tasks DUP(0)        ; 0=empty, 1=pending, 2=completed
     task_count      DB 0
     
-    ; initial player stats
+    ; Player stats
     player_xp       DW 0
     player_coins    DW 0
-    player_stamina  DB 40
-    player_strength DB 10
-    player_health   DB 50
+    player_stamina  DB 10
+    player_strength DB 5
+    player_health   DB 10
     
-    ; temp variables
+    ; Temporary variables
     choice          DB 0
     temp_number     DW 0
     input_buffer    DB 25 DUP(0)
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; MAIN
 
 .CODE
 MAIN PROC
     MOV AX, @DATA
     MOV DS, AX
-
+    
 main_loop:
     CALL show_menu
     CALL get_choice
@@ -115,44 +113,57 @@ upgrade_stats_handler:
     CALL upgrade_stats
     JMP main_loop
 
-
 exit_program:
+    LEA DX, goodbye
+    CALL print_string
     MOV AH, 4Ch
     INT 21h
 
 MAIN ENDP
 
+; Display main menu
+show_menu PROC
+    LEA DX, menu_title
+    CALL print_string
+    RET
+show_menu ENDP
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; FR FUNCTIONS
+; Get user choice
+get_choice PROC
+    MOV AH, 1
+    INT 21h
+    MOV choice, AL
+    RET
+get_choice ENDP
 
-; add a new task
+; Add a new task
 add_task PROC
-    ; check if we have space for more tasks
+    ; Check if we have space for more tasks
     CMP task_count, max_tasks
     JGE task_limit_reached
     
     LEA DX, task_prompt
     CALL print_string
     
-    ; get task input
+    ; Get task input
     LEA DX, input_buffer
     MOV AH, 0Ah
-    MOV input_buffer[0], task_length - 1
+    MOV input_buffer[0], task_length - 1  ; Max chars
     INT 21h
     
-    ; find empty slot and copy task
+    ; Find empty slot and copy task
     MOV AL, task_count
     MOV AH, 0
     MOV BL, task_length
-    MUL BL                      ; aX = task_count * task_length
+    MUL BL                      ; AX = task_count * task_length
     
     MOV SI, AX
-    ADD SI, OFFSET tasks        ; sI points to empty task slot
+    ADD SI, OFFSET tasks        ; SI points to empty task slot
     
-    ; copy task from input buffer
-    MOV CL, input_buffer[1]
+    ; Copy task from input buffer
+    MOV CL, input_buffer[1]     ; Actual length entered
     MOV CH, 0
-    LEA DI, input_buffer[2]
+    LEA DI, input_buffer[2]     ; Start of actual input
     
 copy_task:
     MOV AL, [DI]
@@ -161,9 +172,9 @@ copy_task:
     INC DI
     LOOP copy_task
     
-    MOV BYTE PTR [SI], 0        ; null terminate
-
-    ; mark task as pending
+    MOV BYTE PTR [SI], 0        ; Null terminate
+    
+    ; Mark task as pending
     MOV AL, task_count
     MOV AH, 0
     MOV SI, AX
@@ -183,25 +194,26 @@ task_limit_reached:
     RET
 add_task ENDP
 
-
+; Show all tasks
 show_tasks PROC
-    ; show pending tasks
+    ; Show pending tasks
     LEA DX, pending_header
     CALL print_string
     
-    MOV CX, 0                   ; task counter
-    MOV BX, 0                   ; task index
+    MOV CX, 0                   ; Task counter
+    MOV BX, 0                   ; Task index
     
 show_pending_loop:
     CMP BL, task_count
     JGE show_completed_start
     
+    ; Check if task is pending
     MOV SI, BX
     ADD SI, OFFSET task_status
     CMP BYTE PTR [SI], 1
     JNE next_pending
     
-    ; display task number
+    ; Display task number
     INC CX
     MOV AX, CX
     CALL print_number
@@ -209,14 +221,13 @@ show_pending_loop:
     MOV AH, 9
     INT 21h
     
-
+    ; Display task text (character by character)
     MOV AX, BX
     MOV DL, task_length
     MUL DL
     MOV SI, AX
     ADD SI, OFFSET tasks
-    MOV DX, SI
-    CALL print_string
+    CALL print_task_string
     LEA DX, newline
     CALL print_string
 
@@ -228,8 +239,8 @@ show_completed_start:
     LEA DX, completed_header
     CALL print_string
     
-    MOV CX, 0                   ; reset counter
-    MOV BX, 0                   ; reset index
+    MOV CX, 0                   ; Reset counter
+    MOV BX, 0                   ; Reset index
     
 show_completed_loop:
     CMP BL, task_count
@@ -241,7 +252,7 @@ show_completed_loop:
     CMP BYTE PTR [SI], 2
     JNE next_completed
     
-    ; display task number
+    ; Display task number
     INC CX
     MOV AX, CX
     CALL print_number
@@ -249,13 +260,13 @@ show_completed_loop:
     MOV AH, 9
     INT 21h
     
+    ; Display task text (character by character)
     MOV AX, BX
     MOV DL, task_length
     MUL DL
     MOV SI, AX
     ADD SI, OFFSET tasks
-    MOV DX, SI
-    CALL print_string
+    CALL print_task_string
     LEA DX, newline
     CALL print_string
 
@@ -268,8 +279,7 @@ show_tasks_end:
     RET
 show_tasks ENDP
 
-
-
+; Complete a task
 complete_task PROC
     LEA DX, complete_prompt
     CALL print_string
@@ -277,25 +287,25 @@ complete_task PROC
     CALL get_number
     MOV temp_number, AX
     
-    ; validate task number (1-based)
+    ; Validate task number (1-based)
     CMP AX, 1
     JL invalid_task_num
     
-    ; convert to 0-based and check if it exists
+    ; Convert to 0-based and check if it exists
     DEC AX
     CMP AL, task_count
     JGE invalid_task_num
     
-    ; check if task is pending
+    ; Check if task is pending
     MOV SI, AX
     ADD SI, OFFSET task_status
     CMP BYTE PTR [SI], 1
     JNE invalid_task_num
     
-    ; mark as completed
+    ; Mark as completed
     MOV BYTE PTR [SI], 2
     
-    
+    ; Award XP and coins
     ADD player_xp, 10
     ADD player_coins, 5
     
@@ -311,39 +321,38 @@ invalid_task_num:
     RET
 complete_task ENDP
 
-
-;  view player stats
+; View player stats
 view_stats PROC
     LEA DX, stats_header
     CALL print_string
     
-    ; display XP
+    ; Display XP
     LEA DX, xp_label
     CALL print_string
     MOV AX, player_xp
     CALL print_number
     
-    ; display coins
+    ; Display coins
     LEA DX, coins_label
     CALL print_string
     MOV AX, player_coins
     CALL print_number
     
-    ; display stamina
+    ; Display stamina
     LEA DX, stamina_label
     CALL print_string
     MOV AL, player_stamina
     MOV AH, 0
     CALL print_number
     
-    ; display strength
+    ; Display strength
     LEA DX, strength_label
     CALL print_string
     MOV AL, player_strength
     MOV AH, 0
     CALL print_number
     
-    ; display health
+    ; Display health
     LEA DX, health_label
     CALL print_string
     MOV AL, player_health
@@ -354,8 +363,7 @@ view_stats PROC
     RET
 view_stats ENDP
 
-
-
+; Upgrade stats
 upgrade_stats PROC
     LEA DX, upgrade_header
     CALL print_string
@@ -410,32 +418,38 @@ upgrade_stats_end:
     RET
 upgrade_stats ENDP
 
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; HELPER FUNCTIONS
-
-show_menu PROC
-    LEA DX, menu_title
-    CALL print_string
-    RET
-show_menu ENDP
-
-; get user input
-get_choice PROC
-    MOV AH, 1
-    INT 21h
-    MOV choice, AL
-    RET
-get_choice ENDP
-
+; Utility procedures
 print_string PROC
     MOV AH, 9
     INT 21h
     RET
 print_string ENDP
 
+print_task_string PROC
+    ; Print null-terminated string pointed to by SI
+    PUSH AX
+    PUSH DX
+    
+print_char_loop:
+    MOV AL, [SI]        ; Get character
+    CMP AL, 0           ; Check if null terminator
+    JE print_task_done
+    
+    MOV DL, AL          ; Put character in DL
+    MOV AH, 2           ; DOS function: print character
+    INT 21h
+    
+    INC SI              ; Move to next character
+    JMP print_char_loop
+    
+print_task_done:
+    POP DX
+    POP AX
+    RET
+print_task_string ENDP
+
 print_number PROC
-    ; convert number in AX to string and print
+    ; Convert number in AX to string and print
     PUSH AX
     PUSH BX
     PUSH CX
@@ -467,7 +481,7 @@ print_digits:
 print_number ENDP
 
 get_number PROC
-    ; single digit input
+    ; Simple number input (single digit for now)
     MOV AH, 1
     INT 21h
     SUB AL, '0'
@@ -483,6 +497,4 @@ pause PROC
     RET
 pause ENDP
 
-
-
-END MAIN ; program finishes here
+END MAIN
