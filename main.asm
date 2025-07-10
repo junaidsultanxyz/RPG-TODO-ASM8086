@@ -482,3 +482,7 @@ pause PROC
     INT 21h
     RET
 pause ENDP
+
+
+
+END MAIN ; program finishes here
